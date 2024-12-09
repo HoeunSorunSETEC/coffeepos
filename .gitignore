@@ -1,0 +1,25 @@
+# Environment variables
+.env
+
+# Python cache and compiled files
+__pycache__/
+*.py[cod]
+
+# Virtual environment
+venv/
+env/
+
+# Database files
+*.sqlite3
+*.db
+
+# Byte-compiled and optimized files
+*.pyo
+*.pyd
+
+# Migrations and Alembic files
+migrations/
+alembic_version/
+
+# Logs
+*.log

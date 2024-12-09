@@ -1,0 +1,56 @@
+{% extends 'layouts/base.html' %} {% block title %}Orders - Coffee Shop POS{%
+endblock %} {% block content %}
+<div class="container mt-4">
+  <h1 class="text-center mb-4">All Orders</h1>
+  <div id="orders-list">
+    <!-- Orders will be dynamically loaded here -->
+  </div>
+</div>
+{% endblock %} {% block scripts %}
+<script>
+  // Fetch and display all orders
+  async function fetchOrders() {
+    try {
+      const response = await fetch("/api/orders");
+      const orders = await response.json();
+
+      const ordersList = document.getElementById("orders-list");
+      ordersList.innerHTML = ""; // Clear previous content
+
+      orders.forEach((order) => {
+        const orderCard = document.createElement("div");
+        orderCard.className = "card mb-3 shadow-sm";
+        orderCard.innerHTML = `
+          <div class="card-header">
+            <h5>Order ID: ${order.order_id}</h5>
+            <p>Tax: $${order.tax.toFixed(2)}</p>
+            <p>Total Price: $${order.total_price.toFixed(2)}</p>
+          </div>
+          <div class="card-body">
+            <h6>Order Details:</h6>
+            <ul>
+              ${order.details
+                .map(
+                  (detail) => `
+                <li>
+                  ${detail.quantity}x ${detail.product_name} (${
+                    detail.sugar_level
+                  } sugar) - $${detail.price.toFixed(2)}
+                </li>
+              `
+                )
+                .join("")}
+            </ul>
+          </div>
+        `;
+        ordersList.appendChild(orderCard);
+      });
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+    }
+  }
+
+  // Call fetchOrders on page load
+  document.addEventListener("DOMContentLoaded", fetchOrders);
+</script>
+{% endblock %}

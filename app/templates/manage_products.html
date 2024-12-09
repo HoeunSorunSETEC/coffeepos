@@ -1,0 +1,323 @@
+{% extends 'layouts/base.html' %} {% block title %}Manage Products{% endblock %}
+{% block content %}
+<div class="container mt-4">
+  <h1 class="text-center mb-4">Manage Products</h1>
+
+  <!-- Add Product Button -->
+  <button
+    class="btn btn-primary mb-3"
+    data-bs-toggle="modal"
+    data-bs-target="#addProductModal"
+  >
+    Add Product
+  </button>
+
+  <!-- Product List -->
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Price</th>
+          <th>Category</th>
+          <th>Image</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="product-list">
+        {% for product in products %}
+        <tr>
+          <td>{{ product.id }}</td>
+          <td>{{ product.name }}</td>
+          <td>{{ product.price }}</td>
+          <td>{{ product.category.name }}</td>
+          <td>
+            <img
+              src="{{ url_for('static', filename='images/' ~ product.image) }}"
+              alt="{{ product.name }}"
+              style="width: 50px; height: 50px"
+            />
+          </td>
+          <td>
+            <button
+              class="btn btn-success btn-sm"
+              onclick="openUpdateModal({{ product.id }}, '{{ product.name }}', {{ product.price }}, {{ product.category_id }}, '{{ product.image }}')"
+            >
+              Update
+            </button>
+            <button
+              class="btn btn-danger btn-sm"
+              onclick="deleteProduct({{ product.id }})"
+            >
+              Delete
+            </button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Add Product Modal -->
+<div
+  class="modal fade"
+  id="addProductModal"
+  tabindex="-1"
+  aria-labelledby="addProductModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addProductModalLabel">Add Product</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <form id="add-product-form">
+          <div class="mb-3">
+            <label for="add-name" class="form-label">Name</label>
+            <input type="text" id="add-name" class="form-control" required />
+          </div>
+          <div class="mb-3">
+            <label for="add-price" class="form-label">Price</label>
+            <input
+              type="number"
+              step="0.01"
+              id="add-price"
+              class="form-control"
+              required
+              placeholder="Enter price (e.g., 12.50)"
+            />
+          </div>
+          <div class="mb-3">
+            <label for="add-category" class="form-label">Category</label>
+            <select id="add-category" class="form-select" required>
+              {% for category in categories %}
+              <option value="{{ category.id }}">{{ category.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="add-image" class="form-label">Image</label>
+            <input type="file" id="add-image" class="form-control" required />
+          </div>
+          <button type="submit" class="btn btn-primary w-100">
+            Add Product
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Update Product Modal -->
+<div
+  class="modal fade"
+  id="updateProductModal"
+  tabindex="-1"
+  aria-labelledby="updateProductModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="updateProductModalLabel">Update Product</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <form id="update-product-form">
+          <input type="hidden" id="update-product-id" />
+          <div class="mb-3">
+            <label for="update-name" class="form-label">Name</label>
+            <input type="text" id="update-name" class="form-control" required />
+          </div>
+          <div class="mb-3">
+            <label for="update-price" class="form-label">Price</label>
+            <input
+              type="number"
+              step="0.01"
+              id="update-price"
+              class="form-control"
+              required
+              placeholder="Enter price (e.g., 12.50)"
+            />
+          </div>
+          <div class="mb-3">
+            <label for="update-category" class="form-label">Category</label>
+            <select id="update-category" class="form-select" required>
+              {% for category in categories %}
+              <option value="{{ category.id }}">{{ category.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="update-image" class="form-label">Image</label>
+            <input type="file" id="update-image" class="form-control" />
+          </div>
+          <button type="submit" class="btn btn-primary w-100">
+            Update Product
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block scripts %}
+<script>
+  async function uploadImage(file) {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await fetch("/api/upload-image", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        return data.filename;
+      } else {
+        const error = await response.json();
+        alert("Image upload failed: " + error.error);
+        throw new Error("Image upload failed");
+      }
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  }
+
+  async function addProduct(event) {
+    event.preventDefault();
+
+    const fileInput = document.getElementById("add-image");
+    if (!fileInput.files[0]) {
+      alert("Please select an image.");
+      return;
+    }
+
+    try {
+      const filename = await uploadImage(fileInput.files[0]);
+
+      const formData = {
+        name: document.getElementById("add-name").value,
+        price: parseFloat(document.getElementById("add-price").value),
+        category_id: parseInt(document.getElementById("add-category").value),
+        image: filename,
+      };
+
+      const response = await fetch("/api/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        alert("Product added successfully!");
+        location.reload();
+      } else {
+        const error = await response.json();
+        alert("Error: " + error.error);
+      }
+    } catch (err) {
+      console.error("Error adding product:", err);
+    }
+  }
+
+  function openUpdateModal(id, name, price, categoryId, image) {
+    document.getElementById("update-product-id").value = id;
+    document.getElementById("update-name").value = name;
+    document.getElementById("update-price").value = price;
+    document.getElementById("update-category").value = categoryId;
+    document.getElementById("update-image").dataset.currentImage = image;
+
+    const modal = new bootstrap.Modal(
+      document.getElementById("updateProductModal")
+    );
+    modal.show();
+  }
+
+  async function updateProduct(event) {
+    event.preventDefault();
+    const productId = document.getElementById("update-product-id").value;
+    const fileInput = document.getElementById("update-image");
+
+    let filename = null;
+    if (fileInput.files[0]) {
+      try {
+        filename = await uploadImage(fileInput.files[0]);
+      } catch (err) {
+        console.error("Error uploading image:", err);
+        return;
+      }
+    }
+
+    const formData = {
+      name: document.getElementById("update-name").value,
+      price: parseFloat(document.getElementById("update-price").value),
+      category_id: parseInt(document.getElementById("update-category").value),
+      image:
+        filename ||
+        document.getElementById("update-image").dataset.currentImage,
+    };
+
+    try {
+      const response = await fetch(`/api/products/${productId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        alert("Product updated successfully!");
+        location.reload();
+      } else {
+        const error = await response.json();
+        alert("Error: " + error.error);
+      }
+    } catch (err) {
+      console.error("Error updating product:", err);
+    }
+  }
+
+  async function deleteProduct(productId) {
+    if (!confirm("Are you sure you want to delete this product?")) return;
+
+    try {
+      const response = await fetch(`/api/products/${productId}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        alert("Product deleted successfully!");
+        location.reload();
+      } else {
+        const error = await response.json();
+        alert("Error: " + error.error);
+      }
+    } catch (err) {
+      console.error("Error deleting product:", err);
+    }
+  }
+
+  document
+    .getElementById("add-product-form")
+    .addEventListener("submit", addProduct);
+  document
+    .getElementById("update-product-form")
+    .addEventListener("submit", updateProduct);
+</script>
+{% endblock %}
