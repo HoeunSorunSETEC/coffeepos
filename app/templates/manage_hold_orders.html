@@ -1,0 +1,140 @@
+{% extends 'layouts/base.html' %}
+{% block title %}Manage Hold Orders - Coffee Shop POS{% endblock %}
+{% block content %}
+<div class="container mt-5">
+  <h1 class="text-center mb-4">Manage Hold Orders</h1>
+
+  <!-- Hold Orders Section -->
+  <div id="hold-orders-container" class="row g-4">
+    <!-- Cards will be dynamically added here -->
+  </div>
+
+  <!-- No Hold Orders Message -->
+  <div id="no-hold-orders" class="text-center text-muted" style="display: none">
+    <p>No hold orders available.</p>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+  const heldOrders = JSON.parse(localStorage.getItem("heldOrders")) || {};
+
+  // Fetch table data from the server
+  async function fetchTableData() {
+    try {
+      const response = await fetch("/api/tables");
+      if (!response.ok) throw new Error("Failed to fetch table data.");
+      return await response.json();
+    } catch (error) {
+      console.error("Error fetching table data:", error);
+      return [];
+    }
+  }
+
+  // Render all held orders dynamically
+  async function renderHoldOrders() {
+    const container = document.getElementById("hold-orders-container");
+    const noOrdersMessage = document.getElementById("no-hold-orders");
+    const tables = await fetchTableData(); // Fetch table names and descriptions
+
+    // Clear previous content
+    container.innerHTML = "";
+
+    // If no held orders exist, show a message
+    if (Object.keys(heldOrders).length === 0) {
+      noOrdersMessage.style.display = "block";
+      return;
+    }
+
+    noOrdersMessage.style.display = "none";
+
+    // Create cards for each held order
+    Object.keys(heldOrders).forEach((tableId) => {
+      const order = heldOrders[tableId];
+      const tableInfo = tables.find((table) => table.id == tableId) || {};
+
+      const card = document.createElement("div");
+      card.className = "col-md-4";
+
+      card.innerHTML = `
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h5 class="card-title">Table ID: ${order.tableId}</h5>
+            <h6 class="card-subtitle mb-2 text-muted">${tableInfo.name || "Unknown"}</h6>
+
+            <ul class="list-group mb-3">
+              ${order.orderItems
+                .map(
+                  (item) => `
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    ${item.name} (${item.sugarPercentage})
+                    <span class="badge bg-primary rounded-pill">x${item.quantity}</span>
+                  </li>
+                `
+                )
+                .join("")}
+            </ul>
+            <p class="mb-1"><strong>Subtotal:</strong> $${order.subtotal.toFixed(2)}</p>
+            <p class="mb-1"><strong>Tax (10%):</strong> $${order.tax.toFixed(2)}</p>
+            <p><strong>Total:</strong> $${order.total.toFixed(2)}</p>
+            <div class="d-flex justify-content-between">
+              <button class="btn btn-success btn-sm" onclick="processOrder('${tableId}')">Process</button>
+              <button class="btn btn-danger btn-sm" onclick="clearHold('${tableId}')">Clear Hold</button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      container.appendChild(card);
+    });
+  }
+
+  async function processOrder(tableId) {
+    if (!heldOrders[tableId]) {
+      alert(`No hold order found for Table ${tableId}.`);
+      return;
+    }
+
+    const orderData = heldOrders[tableId];
+
+    const payload = {
+      items: orderData.orderItems,
+    };
+
+    try {
+      const response = await fetch(`/api/hold-orders/process/${tableId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        alert(`Order for Table ${tableId} processed successfully! Order ID: ${result.order_id}`);
+
+        delete heldOrders[tableId];
+        localStorage.setItem("heldOrders", JSON.stringify(heldOrders));
+        renderHoldOrders();
+      } else {
+        const error = await response.json();
+        alert(`Error: ${error.error}`);
+      }
+    } catch (error) {
+      console.error("Error processing held order:", error);
+      alert("An error occurred while processing the held order.");
+    }
+  }
+
+  function clearHold(tableId) {
+    if (!confirm(`Are you sure you want to clear the hold for Table ${tableId}?`)) return;
+
+    delete heldOrders[tableId];
+    localStorage.setItem("heldOrders", JSON.stringify(heldOrders));
+    renderHoldOrders();
+  }
+
+  renderHoldOrders();
+</script>
+{% endblock %}

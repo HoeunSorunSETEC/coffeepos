@@ -9,6 +9,10 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
     />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
   </head>
   <body class="bg-light">
     <div class="container-fluid vh-100">
@@ -36,6 +40,20 @@
             </li>
             <li class="nav-item mb-2">
               <a
+                href="{{ url_for('main.manage_hold_orders') }}"
+                class="nav-link text-light"
+                >Hold Orders</a
+              >
+            </li>
+            <li class="nav-item mb-2">
+              <a
+                href="{{ url_for('main.manage_tables') }}"
+                class="nav-link text-light"
+                >Manage Table</a
+              >
+            </li>
+            <li class="nav-item mb-2">
+              <a
                 href="{{ url_for('main.manage_products') }}"
                 class="nav-link text-light"
                 >Manage Products</a
@@ -50,7 +68,12 @@
             </li>
 
             <li class="nav-item">
-              <a href="" class="nav-link text-light">About Us</a>
+              <a
+                href="https://github.com/HoeunSorunSETEC/coffeepos"
+                class="nav-link text-light"
+                target="_blank"
+                >Source Code</a
+              >
             </li>
           </ul>
         </nav>

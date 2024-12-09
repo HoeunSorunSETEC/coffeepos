@@ -1,0 +1,43 @@
+<div
+  class="modal fade"
+  id="sugarPercentageModal"
+  tabindex="-1"
+  aria-labelledby="sugarPercentageModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="sugarPercentageModalLabel">
+          Select Sugar Percentage
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <form id="sugarPercentageForm">
+          <div class="mb-3">
+            <label for="sugar-percentage" class="form-label"
+              >Sugar Percentage</label
+            >
+            <select class="form-select" id="sugar-percentage" required>
+              <option value="">Choose...</option>
+              <option value="0%">0%</option>
+              <option value="25%">25%</option>
+              <option value="50%">50%</option>
+              <option value="75%">75%</option>
+              <option value="100%">100%</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">
+            Add to Order
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

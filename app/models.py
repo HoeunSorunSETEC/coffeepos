@@ -28,3 +28,11 @@ class OrderDetail(db.Model):
 
     product = db.relationship('Product', backref=db.backref('order_details', lazy=True, cascade="all, delete-orphan"))
     order = db.relationship('Order', backref=db.backref('details', lazy=True, cascade="all, delete-orphan"))
+
+
+class Table(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+
+

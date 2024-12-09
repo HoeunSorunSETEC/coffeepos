@@ -1,0 +1,32 @@
+<div
+  class="modal fade"
+  id="holdOrderModal"
+  tabindex="-1"
+  aria-labelledby="holdOrderModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="holdOrderModalLabel">Hold Order</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <form id="hold-order-form">
+          <div class="mb-3">
+            <label for="hold-table" class="form-label">Select Table</label>
+            <select class="form-select" id="hold-table" required>
+              <!-- Tables will be dynamically populated -->
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Hold</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
